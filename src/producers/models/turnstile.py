@@ -20,16 +20,9 @@ class Turnstile(Producer):
 
     def __init__(self, station):
         """Create the Turnstile"""
-        station_name = (
-            station.name.lower()
-            .replace("/", "_and_")
-            .replace(" ", "_")
-            .replace("-", "_")
-            .replace("'", "")
-        )
-
+        
         super().__init__(
-            f"{station_name}_turnstile",
+            "org.chicago.cta.turnstile",
             key_schema=Turnstile.key_schema,
             value_schema=Turnstile.value_schema, 
             num_partitions=1,
@@ -41,7 +34,6 @@ class Turnstile(Producer):
     def run(self, timestamp, time_step):
         """Simulates riders entering through the turnstile."""
         num_entries = self.turnstile_hardware.get_entries(timestamp, time_step)
-        
         for _ in range(num_entries):
             self.producer.produce(
                 topic=self.topic_name,
@@ -49,8 +41,6 @@ class Turnstile(Producer):
                 value={
                     "station_name": self.station.name,
                     "station_id": self.station.station_id,
-                    "line": self.station.color
-                },
-                key_schema = self.key_schema,
-                value_schema = self.value_schema
+                    "line": self.station.color.name
+                }
             )
