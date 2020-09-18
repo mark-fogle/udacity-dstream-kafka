@@ -49,7 +49,7 @@ class Producer:
         """Creates the producer topic if it does not already exist"""
 
         client = AdminClient({"bootstrap.servers": BROKER_URL})
-        client.create_topics([self.topic_name], num_partitions=self.num_partitions, replication_factor=self.num_replicas)
+        client.create_topics([NewTopic(self.topic_name, num_partitions=self.num_partitions, replication_factor=self.num_replicas)])
 
 
     #def time_millis(self):
