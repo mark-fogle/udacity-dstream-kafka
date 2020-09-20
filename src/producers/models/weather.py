@@ -68,24 +68,7 @@ class Weather(Producer):
         print(self.temp)
         print(self.status.name)
         
-        d = json.dumps(
-               {
-                   "key_schema": json.dumps(Weather.key_schema),
-                   "value_schema": json.dumps(Weather.value_schema),
-                   "records": [
-                       {
-                            "key": {
-                                "timestamp": self.time_millis()
-                            },
-                            "value": 
-                            {
-                                "temperature": self.temp,
-                                "status": self.status.name
-                            }
-                        }
-                    ]
-               })
-        print(d)
+        
         
         resp = requests.post(
            f"{Weather.rest_proxy_url}/topics/org.chicago.cta.weather",
@@ -109,11 +92,10 @@ class Weather(Producer):
                }
            ),
         )
-        #print(data)
-        #try:
-        resp.raise_for_status()
-        #except:
-         #   logger.error(f"Failed to send data to REST Proxy {json.dumps(resp.json(), indent=2)}")
+        try:
+            resp.raise_for_status()
+        except:
+            logger.error(f"Failed to send data to REST Proxy {json.dumps(resp.json(), indent=2)}")
 
         logger.debug(
             "sent weather data to kafka, temp: %s, status: %s",
