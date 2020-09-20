@@ -1,6 +1,7 @@
 """Contains functionality related to Lines"""
 import json
 import logging
+import re
 
 from models import Line
 
@@ -19,9 +20,9 @@ class Lines:
 
     def process_message(self, message):
         """Processes a station message"""
-        if "station" in message.topic():
+        if message.topic().startswith("org.chicago.cta.station"):
             value = message.value()
-            if message.topic() == "org.chicago.cta.stations":
+            if re.match(r'org.chicago.cta.stations(.(\w*|\.))', message.topic()):
                 value = json.loads(value)
             if value["line"] == "green":
                 self.green_line.process_message(message)
