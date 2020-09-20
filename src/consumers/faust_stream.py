@@ -29,29 +29,41 @@ class TransformedStation(faust.Record):
     line: str
 
 
-# TODO: Define a Faust Stream that ingests data from the Kafka Connect stations topic and
-#   places it into a new topic with only the necessary information.
+# Define a Faust Stream that ingests data from the Kafka Connect stations topic and
+# places it into a new topic with only the necessary information.
 app = faust.App("stations-stream", broker="kafka://localhost:9092", store="memory://")
-# TODO: Define the input Kafka Topic. Hint: What topic did Kafka Connect output to?
-# topic = app.topic("TODO", value_type=Station)
-# TODO: Define the output Kafka Topic
-# out_topic = app.topic("TODO", partitions=1)
-# TODO: Define a Faust Table
-#table = app.Table(
-#    # "TODO",
-#    # default=TODO,
-#    partitions=1,
-#    changelog_topic=out_topic,
-#)
+# Define the input Kafka Topic. Hint: What topic did Kafka Connect output to?
+topic = app.topic("org.chicago.cta.jdbc.stations", value_type=Station)
+# Define the output Kafka Topic
+out_topic = app.topic("org.chicago.cta.stations", partitions=1)
+# Define a Faust Table
+table = app.Table(
+   "org.chicago.cta.stations.table",
+   default=TransformedStation,
+   partitions=1,
+   changelog_topic=out_topic,
+)
 
+def get_station_line(station: Station):
+    if station.red:
+        return "red"
+    elif station.blue:
+        return "blue"
+    elif station.green:
+        return "green" 
+    else:
+        logging.warning(f"Unknown station color for station {station.station_id}")
+        return "Unknown"
 
-#
-#
-# TODO: Using Faust, transform input `Station` records into `TransformedStation` records. Note that
-# "line" is the color of the station. So if the `Station` record has the field `red` set to true,
-# then you would set the `line` of the `TransformedStation` record to the string `"red"`
-#
-#
+@app.agent(topic)
+async def process(stations):
+    async for station in stations:
+        table[station.station_id] = TransformedStation(
+            station_id = station.station_id,
+            station_name = station.station_name,
+            order = station.order,
+            line = get_station_line(station)
+        )
 
 
 if __name__ == "__main__":
