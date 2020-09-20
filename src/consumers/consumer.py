@@ -92,6 +92,7 @@ class KafkaConsumer:
         elif message.error() is not None:
             return 0
         else:
+            self.message_handler(message)
             return 1
 
 
