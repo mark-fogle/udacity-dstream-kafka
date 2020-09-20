@@ -70,13 +70,13 @@ def run_server():
             is_avro=True
         ),
         KafkaConsumer(
-            "org.chicago.cta.stations(.(\w*|\.))",
+            "org.chicago.cta.stations",
             lines.process_message,
             offset_earliest=True,
             is_avro=False,
         ),
         KafkaConsumer(
-            "org.chicago.cta.station(.(\w*|\.)).arrivals",
+            "^org.chicago.cta.station.",
             lines.process_message,
             offset_earliest=True,
         ),

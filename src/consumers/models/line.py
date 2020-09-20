@@ -1,7 +1,6 @@
 """Contains functionality related to Lines"""
 import json
 import logging
-import re
 
 from models import Station
 
@@ -58,14 +57,15 @@ class Line:
     def process_message(self, message):
         """Given a kafka message, extract data"""
         # Based on the message topic, call the appropriate handler.
-        if re.match(r'org.chicago.cta.stations(.(\w*|\.))',message.topic()): # Set the conditional correctly to the stations Faust Table
+        print(message.topic())
+        if message.topic() == "org.chicago.cta.stations": # Set the conditional correctly to the stations Faust Table
             logger.debug("received station topic")
             try:
                 value = json.loads(message.value())
                 self._handle_station(value)
             except Exception as e:
                 logger.fatal("bad station? %s, %s", value, e)
-        elif re.match(r'org.chicago.cta.station(.(\w*|\.)).arrivals', message.topic()): # Set the conditional to the arrival topic
+        elif message.topic().startswith("org.chicago.cta.station."): # Set the conditional to the arrival topic
             logger.debug("received arrival topic")
             self._handle_arrival(message)
         elif message.topic() == "TURNSTILE_SUMMARY": # Set the conditional to the KSQL Turnstile Summary Topic
